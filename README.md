@@ -100,3 +100,14 @@ You can then run:
 ```
 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook main.yml -i test.inventory
 ```
+
+If you end up with leftover instances, they can be cleaned up:
+
+```
+ansible-mock --cleanup
+cleanup(): test-590ad deleted
+cleanup(): test-877d4 deleted
+cleanup(): test-d98cb deleted
+cleanup(): test-50767 deleted
+cleanup(): test-46738 deleted
+```
