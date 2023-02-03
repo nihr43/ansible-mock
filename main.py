@@ -149,7 +149,7 @@ if __name__ == '__main__':
 
             if args.preserve:
                 log.info('environment created.  follow-up configuration can be performed with:')
-                print('ansible-playbook main.yml -i virtual.inventory')
+                print('ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook main.yml -i test.inventory')
             else:
                 cleanup(client, log, pylxd)
 
