@@ -1,5 +1,8 @@
 .PHONY: build lint
 
+bin: lint
+	cp main.py ~/bin/ansible-mock
+
 lint:
 	flake8 --ignore E501 *.py
 
