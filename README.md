@@ -4,6 +4,8 @@ Develop and test Ansible roles on the fly with LXD containers.
 
 ## usage
 
+It is assummed you grok [lxd](https://linuxcontainers.org/lxd/docs/master/).
+
 From within a role directory, this tool will:
 
 - create an lxd container of `--image`
