@@ -85,7 +85,7 @@ def wait_until_ready(instance, log):
     for i in range(count):
         if instance.execute(['hostname']).exit_code == 0:
             break
-        if i == count-1:
+        if i == count - 1:
             log.info('timed out waiting')
             exit(1)
         time.sleep(1)
