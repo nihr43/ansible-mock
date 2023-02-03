@@ -107,7 +107,6 @@ if __name__ == '__main__':
         client = pylxd.Client()
 
         parser = argparse.ArgumentParser()
-        parser.add_argument('--create', action='store_true')
         parser.add_argument('--preserve', action='store_true')
         parser.add_argument('--cleanup', action='store_true')
         parser.add_argument('--image', type=str, default='debian/12')
@@ -115,7 +114,7 @@ if __name__ == '__main__':
 
         if args.cleanup:
             cleanup(client, log, pylxd)
-        elif args.create:
+        else:
             pubkey = create_keypair(RSA)
             inst = create_node(client, 'test', args.image, pubkey, log)
 
