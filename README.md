@@ -111,3 +111,5 @@ cleanup(): test-d98cb deleted
 cleanup(): test-50767 deleted
 cleanup(): test-46738 deleted
 ```
+
+ansible-mock is admittedly not very robust; to see an example of a role where I use this regularly, see [debian_common](https://github.com/nihr43/debian_common).
