@@ -95,10 +95,10 @@ if __name__ == '__main__':
     def main():
         import pylxd
         from pylxd import models # noqa
+        import ansible_runner
+        from ansible_runner.display_callback.callback import awx_display # noqa
         import logging
         import argparse
-        import ansible_runner
-        from jinja2 import Environment, FileSystemLoader
         from Crypto.PublicKey import RSA
 
         logging.basicConfig(format='%(funcName)s(): %(message)s')
@@ -119,18 +119,31 @@ if __name__ == '__main__':
             pubkey = create_keypair(RSA)
             inst = create_node(client, 'test', args.image, pubkey, log)
 
-            env = Environment(
-                loader=FileSystemLoader('.')
-            )
+            ansible_hostname = inst.state().network['eth0']['addresses'][0]['address']
+            inventory = '{} ansible_ssh_private_key_file=private.key ansible_user=root'.format(ansible_hostname)
 
-            template = env.get_template('virtual-inventory.j2')
-            with open('virtual.inventory', 'w') as inventory:
-                inventory.truncate()
-                inventory.write(template.render(inst=inst))
+            with open('test.inventory', 'w') as f:
+                f.truncate()
+                f.write(inventory)
+
+            playbook = '''---
+- hosts: all
+  tasks:
+    - ansible.builtin.include_vars:
+        file: vars.yml
+    - import_tasks: tasks/main.yml
+  handlers:
+    - import_tasks: handlers/main.yml
+  vars:
+    - ansible_host_key_checking: false
+'''
+
+            with open('main.yml', mode='w') as f:
+                print(playbook, file=f)
 
             ansible_runner.run(
                 private_data_dir='./',
-                inventory='virtual.inventory',
+                inventory='test.inventory',
                 playbook='main.yml'
             )
 
