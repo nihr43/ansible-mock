@@ -1,8 +1,0 @@
----
-- hosts: all
-  tasks:
-    - ansible.builtin.include_vars:
-        file: vars.yml
-    - import_tasks: tasks/main.yml
-  handlers:
-    - import_tasks: handlers/main.yml
