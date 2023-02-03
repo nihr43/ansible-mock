@@ -94,6 +94,7 @@ def wait_until_ready(instance, log):
 if __name__ == '__main__':
     def main():
         import pylxd
+        from pylxd import models # noqa
         import logging
         import argparse
         import ansible_runner
