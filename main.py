@@ -28,11 +28,11 @@ def create_keypair(RSA):
     returns public key
     '''
     key = RSA.generate(4096)
-    with open("./private.key", 'wb') as content_file:
-        chmod("./private.key", 0o600)
+    with open(".mock/private.key", 'wb') as content_file:
+        chmod(".mock/private.key", 0o600)
         content_file.write(key.exportKey('PEM'))
     pubkey = key.publickey()
-    with open("./public.key", 'wb') as content_file:
+    with open(".mock/public.key", 'wb') as content_file:
         content_file.write(pubkey.exportKey('OpenSSH'))
     return pubkey
 
@@ -93,6 +93,7 @@ def wait_until_ready(instance, log):
 
 if __name__ == '__main__':
     def main():
+        import os
         import pylxd
         from pylxd import models # noqa
         import ansible_runner
@@ -115,13 +116,16 @@ if __name__ == '__main__':
         if args.cleanup:
             cleanup(client, log, pylxd)
         else:
+            if not os.path.exists('.mock'):
+                os.makedirs('.mock')
+
             pubkey = create_keypair(RSA)
-            inst = create_node(client, 'test', args.image, pubkey, log)
+            inst = create_node(client, 'ansible-mock', args.image, pubkey, log)
 
             ansible_hostname = inst.state().network['eth0']['addresses'][0]['address']
-            inventory = '{} ansible_ssh_private_key_file=private.key ansible_user=root'.format(ansible_hostname)
+            inventory = '{} ansible_ssh_private_key_file=.mock/private.key ansible_user=root'.format(ansible_hostname)
 
-            with open('test.inventory', 'w') as f:
+            with open('.mock/inventory', 'w') as f:
                 f.truncate()
                 f.write(inventory)
 
@@ -137,18 +141,18 @@ if __name__ == '__main__':
     - ansible_host_key_checking: false
 '''
 
-            with open('main.yml', mode='w') as f:
+            with open('.mock.yml', mode='w') as f:
                 print(playbook, file=f)
 
             ansible_runner.run(
                 private_data_dir='./',
-                inventory='test.inventory',
-                playbook='main.yml'
+                inventory='.mock/inventory',
+                playbook='.mock.yml'
             )
 
             if args.preserve:
                 log.info('environment created.  follow-up configuration can be performed with:')
-                print('ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook main.yml -i test.inventory')
+                print('ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook .mock.yml -i .mock/inventory')
             else:
                 cleanup(client, log, pylxd)
 
