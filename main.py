@@ -37,7 +37,7 @@ def create_keypair(RSA):
     return pubkey
 
 
-def create_node(client, name, image, pubkey, log):
+def create_node(client, name, image, vm, pubkey, log):
     name = name + '-' + str(uuid.uuid4())[0:5]
     config = {'name': name,
               'description': 'ansible-mock',
@@ -48,6 +48,9 @@ def create_node(client, name, image, pubkey, log):
                          'alias': image},
               'config': {'limits.cpu': '2',
                          'limits.memory': '1GB'}}
+    if vm:
+        config['type'] = 'virtual-machine'
+
     log.info('creating node ' + name)
     inst = client.instances.create(config, wait=True)
     inst.start(wait=True)
@@ -110,6 +113,7 @@ if __name__ == '__main__':
         parser = argparse.ArgumentParser()
         parser.add_argument('--preserve', action='store_true')
         parser.add_argument('--cleanup', action='store_true')
+        parser.add_argument('--vm', action='store_true')
         parser.add_argument('--image', type=str, default='debian/12')
         args = parser.parse_args()
 
@@ -120,9 +124,12 @@ if __name__ == '__main__':
                 os.makedirs('.mock')
 
             pubkey = create_keypair(RSA)
-            inst = create_node(client, 'ansible-mock', args.image, pubkey, log)
+            inst = create_node(client, 'ansible-mock', args.image, args.vm, pubkey, log)
 
-            ansible_hostname = inst.state().network['eth0']['addresses'][0]['address']
+            if args.vm:
+                ansible_hostname = inst.state().network['enp5s0']['addresses'][0]['address']
+            else:
+                ansible_hostname = inst.state().network['eth0']['addresses'][0]['address']
             inventory = '{} ansible_ssh_private_key_file=.mock/private.key ansible_user=root'.format(ansible_hostname)
 
             with open('.mock/inventory', 'w') as f:
