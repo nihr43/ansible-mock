@@ -7,7 +7,7 @@ from os import chmod
 
 def cleanup(client, log, pylxd):
     instances_to_delete = [i for i in client.instances.all()
-                           if i.description == 'test']
+                           if i.description == 'ansible-mock']
 
     for i in instances_to_delete:
         try:
@@ -40,7 +40,7 @@ def create_keypair(RSA):
 def create_node(client, name, image, pubkey, log):
     name = name + '-' + str(uuid.uuid4())[0:5]
     config = {'name': name,
-              'description': 'test',
+              'description': 'ansible-mock',
               'source': {'type': 'image',
                          'mode': 'pull',
                          'server': 'https://images.linuxcontainers.org',
