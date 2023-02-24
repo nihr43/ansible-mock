@@ -115,3 +115,7 @@ cleanup(): test-46738 deleted
 ```
 
 ansible-mock is admittedly not very robust; to see an example of a role where I use this regularly, see [debian_common](https://github.com/nihr43/debian_common).
+
+## license
+
+ansible-mock is offered under terms of [GPLv3](https://www.gnu.org/licenses/gpl-3.0.txt).
