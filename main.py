@@ -162,7 +162,7 @@ if __name__ == '__main__':
 
             if args.preserve:
                 log.info('environment created.  follow-up configuration can be performed with:')
-                print('ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook .mock.yml -i .mock/inventory')
+                print('ansible-playbook .mock.yml -i .mock/inventory')
             else:
                 cleanup(client, log, pylxd)
 
