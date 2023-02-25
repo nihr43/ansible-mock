@@ -94,13 +94,13 @@ create_node(): creating node test-50767
 wait_until_ready(): waiting for lxd agent to become ready on test-50767
 ...
 main(): environment created.  follow-up configuration can be performed with:
-ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook .mock.yml -i .mock/inventory
+ansible-playbook .mock.yml -i .mock/inventory
 ```
 
 You can then run:
 
 ```
-ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook .mock.yml -i .mock/inventory
+ansible-playbook .mock.yml -i .mock/inventory
 ```
 
 If you end up with leftover instances, they can be cleaned up:
