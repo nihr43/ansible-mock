@@ -46,8 +46,8 @@ def create_node(client, name, image, vm, pubkey, log):
                          'server': 'https://images.linuxcontainers.org',
                          'protocol': 'simplestreams',
                          'alias': image},
-              'config': {'limits.cpu': '2',
-                         'limits.memory': '1GB'}}
+              'config': {'limits.cpu': '4',
+                         'limits.memory': '8GB'}}
     if vm:
         config['type'] = 'virtual-machine'
 
