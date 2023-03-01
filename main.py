@@ -117,7 +117,8 @@ if __name__ == '__main__':
         parser.add_argument('--preserve', action='store_true')
         parser.add_argument('--cleanup', action='store_true')
         parser.add_argument('--vm', action='store_true')
-        parser.add_argument('--image', type=str, default='debian/12')
+        parser.add_argument('--image', type=str, default='debian/12',
+                            help='Defaults to debian/12')
         args = parser.parse_args()
 
         if args.cleanup:
