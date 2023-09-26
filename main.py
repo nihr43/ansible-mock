@@ -2,10 +2,8 @@
 
 import uuid
 import time
-from os import chmod
 import os
 import pylxd
-from pylxd import models  # noqa
 import ansible_runner
 from ansible_runner.display_callback.callback import awx_display  # noqa
 import logging
@@ -38,7 +36,7 @@ def create_keypair(directory):
     """
     key = RSA.generate(4096)
     with open("{}/private.key".format(directory), "wb") as content_file:
-        chmod("{}/private.key".format(directory), 0o600)
+        os.chmod("{}/private.key".format(directory), 0o600)
         content_file.write(key.exportKey("PEM"))
     pubkey = key.publickey()
     with open("{}/public.key".format(directory), "wb") as content_file:
@@ -129,7 +127,7 @@ if __name__ == "__main__":
     keydir = ".mock"
 
     if args.cleanup:
-        cleanup(client, log, pylxd)
+        cleanup(client, log)
     else:
         if not os.path.exists(keydir):
             os.makedirs(keydir)
@@ -151,7 +149,7 @@ if __name__ == "__main__":
             f.truncate()
             f.write(inventory)
 
-        playbook = """---
+        playbook_txt = """---
 - hosts: all
   tasks:
     - ansible.builtin.include_vars:
@@ -163,19 +161,21 @@ if __name__ == "__main__":
     - ansible_host_key_checking: false
 """
 
-        with open(".mock.yml", mode="w") as f:
-            print(playbook, file=f)
+        playbook = "{}/main.yml".format(keydir)
+
+        with open(playbook, mode="w") as f:
+            print(playbook_txt, file=f)
 
         ansible_runner.run(
             private_data_dir="./",
             inventory="{}/inventory".format(keydir),
-            playbook=".mock.yml",
+            playbook=playbook,
         )
 
         if args.preserve:
             log.info(
                 "environment created.  follow-up configuration can be performed with:"
             )
-            print("ansible-playbook .mock.yml -i {}/inventory".format(keydir))
+            print("ansible-playbook {} -i {}/inventory".format(playbook, keydir))
         else:
             cleanup(client, log, pylxd)
