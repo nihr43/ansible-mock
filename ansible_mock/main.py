@@ -161,7 +161,7 @@ def main():
     - ansible_host_key_checking: false
 """
 
-        playbook = "{}/main.yml".format(keydir)
+        playbook = ".mock.yml"
 
         with open(playbook, mode="w") as f:
             print(playbook_txt, file=f)
