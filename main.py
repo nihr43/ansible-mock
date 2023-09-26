@@ -3,9 +3,17 @@
 import uuid
 import time
 from os import chmod
+import os
+import pylxd
+from pylxd import models  # noqa
+import ansible_runner
+from ansible_runner.display_callback.callback import awx_display  # noqa
+import logging
+import argparse
+from Crypto.PublicKey import RSA
 
 
-def cleanup(client, log, pylxd):
+def cleanup(client, log):
     instances_to_delete = [
         i for i in client.instances.all() if i.description == "ansible-mock"
     ]
@@ -23,17 +31,17 @@ def cleanup(client, log, pylxd):
         log.info(i.name + " deleted")
 
 
-def create_keypair(RSA):
+def create_keypair(directory):
     """
     creates ssh keypair for use with ansible
     returns public key
     """
     key = RSA.generate(4096)
-    with open(".mock/private.key", "wb") as content_file:
-        chmod(".mock/private.key", 0o600)
+    with open("{}/private.key".format(directory), "wb") as content_file:
+        chmod("{}/private.key".format(directory), 0o600)
         content_file.write(key.exportKey("PEM"))
     pubkey = key.publickey()
-    with open(".mock/public.key", "wb") as content_file:
+    with open("{}/public.key".format(directory), "wb") as content_file:
         content_file.write(pubkey.exportKey("OpenSSH"))
     return pubkey
 
@@ -104,57 +112,46 @@ def wait_until_ready(instance, log):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(format="%(funcName)s(): %(message)s")
+    log = logging.getLogger(__name__)
+    log.setLevel(logging.INFO)
+    client = pylxd.Client()
 
-    def main():
-        import os
-        import pylxd
-        from pylxd import models  # noqa
-        import ansible_runner
-        from ansible_runner.display_callback.callback import awx_display  # noqa
-        import logging
-        import argparse
-        from Crypto.PublicKey import RSA
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--preserve", action="store_true")
+    parser.add_argument("--cleanup", action="store_true")
+    parser.add_argument("--vm", action="store_true")
+    parser.add_argument(
+        "--image", type=str, default="debian/12", help="Defaults to debian/12"
+    )
+    args = parser.parse_args()
 
-        logging.basicConfig(format="%(funcName)s(): %(message)s")
-        log = logging.getLogger(__name__)
-        log.setLevel(logging.INFO)
-        client = pylxd.Client()
+    keydir = ".mock"
 
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--preserve", action="store_true")
-        parser.add_argument("--cleanup", action="store_true")
-        parser.add_argument("--vm", action="store_true")
-        parser.add_argument(
-            "--image", type=str, default="debian/12", help="Defaults to debian/12"
-        )
-        args = parser.parse_args()
+    if args.cleanup:
+        cleanup(client, log, pylxd)
+    else:
+        if not os.path.exists(keydir):
+            os.makedirs(keydir)
 
-        if args.cleanup:
-            cleanup(client, log, pylxd)
+        pubkey = create_keypair(keydir)
+        inst = create_node(client, "ansible-mock", args.image, args.vm, pubkey, log)
+
+        if args.vm:
+            ansible_hostname = inst.state().network["enp5s0"]["addresses"][0]["address"]
         else:
-            if not os.path.exists(".mock"):
-                os.makedirs(".mock")
-
-            pubkey = create_keypair(RSA)
-            inst = create_node(client, "ansible-mock", args.image, args.vm, pubkey, log)
-
-            if args.vm:
-                ansible_hostname = inst.state().network["enp5s0"]["addresses"][0][
-                    "address"
-                ]
-            else:
-                ansible_hostname = inst.state().network["eth0"]["addresses"][0][
-                    "address"
-                ]
-            inventory = "{} ansible_ssh_private_key_file=.mock/private.key ansible_user=root".format(
-                ansible_hostname
+            ansible_hostname = inst.state().network["eth0"]["addresses"][0]["address"]
+        inventory = (
+            "{} ansible_ssh_private_key_file={}/private.key ansible_user=root".format(
+                ansible_hostname, keydir
             )
+        )
 
-            with open(".mock/inventory", "w") as f:
-                f.truncate()
-                f.write(inventory)
+        with open("{}/inventory".format(keydir), "w") as f:
+            f.truncate()
+            f.write(inventory)
 
-            playbook = """---
+        playbook = """---
 - hosts: all
   tasks:
     - ansible.builtin.include_vars:
@@ -166,19 +163,19 @@ if __name__ == "__main__":
     - ansible_host_key_checking: false
 """
 
-            with open(".mock.yml", mode="w") as f:
-                print(playbook, file=f)
+        with open(".mock.yml", mode="w") as f:
+            print(playbook, file=f)
 
-            ansible_runner.run(
-                private_data_dir="./", inventory=".mock/inventory", playbook=".mock.yml"
+        ansible_runner.run(
+            private_data_dir="./",
+            inventory="{}/inventory".format(keydir),
+            playbook=".mock.yml",
+        )
+
+        if args.preserve:
+            log.info(
+                "environment created.  follow-up configuration can be performed with:"
             )
-
-            if args.preserve:
-                log.info(
-                    "environment created.  follow-up configuration can be performed with:"
-                )
-                print("ansible-playbook .mock.yml -i .mock/inventory")
-            else:
-                cleanup(client, log, pylxd)
-
-    main()
+            print("ansible-playbook .mock.yml -i {}/inventory".format(keydir))
+        else:
+            cleanup(client, log, pylxd)
