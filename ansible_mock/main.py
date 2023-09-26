@@ -178,7 +178,7 @@ def main():
             )
             print("ansible-playbook {} -i {}/inventory".format(playbook, keydir))
         else:
-            cleanup(client, log, pylxd)
+            cleanup(client, log)
 
 
 if __name__ == "__main__":
