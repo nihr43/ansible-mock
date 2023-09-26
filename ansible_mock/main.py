@@ -109,7 +109,7 @@ def wait_until_ready(instance, log):
         time.sleep(1)
 
 
-if __name__ == "__main__":
+def main():
     logging.basicConfig(format="%(funcName)s(): %(message)s")
     log = logging.getLogger(__name__)
     log.setLevel(logging.INFO)
@@ -179,3 +179,9 @@ if __name__ == "__main__":
             print("ansible-playbook {} -i {}/inventory".format(playbook, keydir))
         else:
             cleanup(client, log, pylxd)
+
+
+if __name__ == "__main__":
+    import sys
+
+    sys.exit(main())
