@@ -1,10 +1,12 @@
-# ansible-mock
+# ansible_mock
 
 Develop and test Ansible roles on the fly with LXD containers.
 
 ## usage
 
 It is assummed you grok [lxd](https://linuxcontainers.org/lxd/docs/master/).
+
+ansible_mock can be installed with `pip3 install --user . --break-system-packages`, or see `make install`.
 
 From within a role directory, this tool will:
 
@@ -26,7 +28,7 @@ A role is expected to be laid out as follows.  vars.yml contains default vars if
 To run the role:
 
 ```
-$ ansible-mock
+$ ansible_mock
 create_node(): creating node test-46b9b
 wait_until_ready(): waiting for lxd agent to become ready on test-46b9b
 create_node(): Reading package lists...
@@ -86,10 +88,10 @@ cleanup(): test-46b9b deleted
 
 By default, the instance is immediately deleted.
 
-If used with `--preserve`, ansible-mock leaves behind the inventory, playbook, and key to run subsequent `ansible-playbook` commands without having to recreate everything:
+If used with `--preserve`, ansible_mock leaves behind the inventory, playbook, and key to run subsequent `ansible-playbook` commands without having to recreate everything:
 
 ```
-ansible-mock --preserve
+ansible_mock --preserve
 create_node(): creating node test-50767
 wait_until_ready(): waiting for lxd agent to become ready on test-50767
 ...
@@ -106,7 +108,7 @@ ansible-playbook .mock.yml -i .mock/inventory
 If you end up with leftover instances, they can be cleaned up:
 
 ```
-ansible-mock --cleanup
+ansible_mock --cleanup
 cleanup(): test-590ad deleted
 cleanup(): test-877d4 deleted
 cleanup(): test-d98cb deleted
@@ -114,8 +116,8 @@ cleanup(): test-50767 deleted
 cleanup(): test-46738 deleted
 ```
 
-ansible-mock is admittedly not very robust; to see an example of a role where I use this regularly, see [debian_common](https://github.com/nihr43/debian_common).
+ansible_mock is admittedly not very robust; to see an example of a role where I use this regularly, see [debian_common](https://github.com/nihr43/debian_common).
 
 ## license
 
-ansible-mock is offered under terms of [GPLv3](https://www.gnu.org/licenses/gpl-3.0.txt).
+ansible_mock is offered under terms of [GPLv3](https://www.gnu.org/licenses/gpl-3.0.txt).
